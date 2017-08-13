@@ -1,8 +1,9 @@
 import React from 'react';
 import _ from 'lodash';
 import cookie from '../../utils/cookies'
-
 import router from '../../app.router';
+import NavBar from '../navbar/component'
+
 export default class ContactsState extends React.Component {
   constructor(props) {
           super(props);
@@ -20,7 +21,7 @@ export default class ContactsState extends React.Component {
                 }
              GetContacts(){
               var token =cookie.get('auth-token');
-              if(token){
+              if(token != 'undefined' && token != null){
                 token=token.replace(/['"]+/g, '');
                  var requestUrl ='https://internal-api-staging-lb.interact.io/v2/contacts?limit=4&offset='+this.state.offset;
                   fetch(requestUrl, {
@@ -39,8 +40,8 @@ export default class ContactsState extends React.Component {
                     }).catch(function(ex) {
                           console.log('failed', ex)
                     });
+                      this.setState({offset:this.state.offset+1});
                   };
-                  this.setState({offset:this.state.offset+1});
                 };
              render (){
                         function  PhoneNumbers({ phoneNumbers }) {
@@ -105,17 +106,19 @@ export default class ContactsState extends React.Component {
                                          <ul className='list-group' id='contact-list'>
                                            {
                                                     this.state.contacts.map(function(contact,i){
-                                                        return( <ContactSegment key={contact.id}>
-                                                            <div className='col-xs-12 col-sm-3 '>
-                                                              <ProfilePicture profilePicture={contact.profilePicture} />
-                                                           </div>
-                                                           <div className='col-xs-12 col-sm-9 '>
-                                                               <ContactType contactType={contact.contactType}/>
-                                                             <span  className='name'>{contact.displayName}</span><br/>
-                                                                 <span> <PhoneNumbers phoneNumbers={contact.phoneNumbers} /> </span>
-                                                                 <span> <Emails emails={contact.emails} /> </span>
-                                                            </div>
-                                                                </ContactSegment>)
+                                                        return(
+                                                           <li className='list-group-item ' key={contact.id}>
+                                                                <div className='col-xs-12 col-sm-3 '>
+                                                                  <ProfilePicture profilePicture={contact.profilePicture} />
+                                                               </div>
+                                                               <div className='col-xs-12 col-sm-9 '>
+                                                                   <ContactType contactType={contact.contactType}/>
+                                                                 <span  className='name'>{contact.displayName}</span><br/>
+                                                                     <span> <PhoneNumbers phoneNumbers={contact.phoneNumbers} /> </span>
+                                                                     <span> <Emails emails={contact.emails} /> </span>
+                                                                </div>
+                                                                <div className='clearfix '></div>
+                                                            </li>)
                                                     })
                                            }
                                            <div className='panel-footer c-list'>
@@ -126,87 +129,6 @@ export default class ContactsState extends React.Component {
                                  </div>
                             </div>
                             </div>
-                           ); 
+                           );
                       }
 }
-
-var ContactSegment = React.createClass({
-     render : function (){
-                return (
-                    <li className='list-group-item '>
-                         {this.props.children}
-                        <div className='clearfix '></div>
-                   </li>
-                );
-            }
-        });
-
-var NavBar = React.createClass({
-  getInitialState() {
-      return { lastName:cookie.get('user') };
-    },
-  render:function(){
-    return(
-            <nav className="navbar navbar-default navbar-static-top" role="navigation">
-              <div className="container">
-                <div className="navbar-header">
-                    <button type="button" className="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                        <span className="sr-only">Toggle navigation</span>
-                        <span className="icon-bar"></span>
-                        <span className="icon-bar"></span>
-                        <span className="icon-bar"></span>
-                    </button>
-                    <a className="navbar-brand" href="#">ReactJS Contacts</a>
-                </div>
-                <div id="navbar" className="navbar-collapse collapse">
-                    <ul className="nav navbar-nav navbar-right">
-                        <li className="dropdown" >
-                              <a href="#" className="dropdown-toggle" data-toggle="dropdown">
-                                           {this.state.lastName.replace(/['"]+/g, '')}
-                                            <span className="caret"></span></a>
-                             <ul className="dropdown-menu">
-                                          <li>  <LogoutButton> </LogoutButton> </li>
-                                        </ul>
-                       </li>
-
-                    </ul>
-                </div>
-              </div>
-            </nav>
-          );
-     }
-});
-
-export class LogoutButton extends React.Component {
-            constructor(props) {
-                    super(props);
-                    this.handleLogout = this.handleLogout.bind(this);
-                }
-            handleLogout(event) {
-                             router.go('login');
-                                var requestBody ={authToken:"kss_0vUY1noqOQ4LfAK4TILoal"};
-                               fetch('https://internal-api-staging-lb.interact.io/v2/logout/', {
-                                method: 'POST',
-                                headers:{
-                                            'Content-Type': 'application/json', 'Access-Control-Allow-Origin':'*',
-                                            'Accept':'application/json'
-                                    },
-                                body: JSON.stringify(requestBody)
-                                }).then(response=> {
-                                        console.log(response);
-                                        cookie.remove('user');
-                                        cookie.remove('auth-token');
-                                }).then(()=>{
-                                    router.go('login');
-                                }).catch(function(ex) {
-                                    console.log('failed ', ex)
-                              });
-                                 event.preventDefault();
-
-                };
-            render (){
-                        return (
-                        <a href="#" onClick={this.handleLogout}>Logout</a>
-                        );
-                    }
-        };

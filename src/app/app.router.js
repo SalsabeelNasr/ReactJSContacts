@@ -15,11 +15,10 @@ class AppRouter {
       },
       contacts: {
         path: '/contacts',
-        public: true
+        public: false
       }
     };
-
-    // set defaults and transform string routes to objects
+ 
     _.each(this.routes, (route, routeKey) => {
       if (_.isObject(route) === true) {
         route = _.defaults(route, {
@@ -36,8 +35,6 @@ class AppRouter {
     });
   }
 
-  // we can implement any middleware logic here
-  // for example, i will check here if user is loggedIn or not, and if route is public
   go(routeKey, params) {
     if (!this.routes[routeKey]) {
       throw new Error('route not found for key: ' + routeKey);
@@ -50,14 +47,12 @@ class AppRouter {
 
     let routePath = this.routes[routeKey].path;
 
-    // process route params
     if (_.isUndefined(params) === false) {
       _.each(params, (paramValue, paramKey) => {
         routePath = routePath.replace(new RegExp(':' + paramKey, 'g'), paramValue);
       });
     }
 
-    // if missing path params
     let routeParams = routePath.match(new RegExp(':[a-zA-Z\-]+', 'gi'));
 
     if (routeParams) { // replace missing params with -1
@@ -69,7 +64,6 @@ class AppRouter {
     browserHistory.push(routePath);
   }
 
-  // @TODO: fails for routes with params
   get() {
     let path = window.location.pathname;
     return _.findKey(this.routes, (route) => this._matches(route.path, path));

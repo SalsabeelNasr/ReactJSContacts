@@ -7,7 +7,8 @@ export default class LoginState extends React.Component {
      this.state =  {username: '',password:'',
      formErrors: {email: '', password: ''},
      usernameValid: false,
-     passwordValid: false };
+     passwordValid: false ,
+     buttonClicked: false };
      this.handleSubmit = this.handleSubmit.bind(this);
      this.handleUsernameChange = this.handleUsernameChange.bind(this);
      this.handlePasswordChange = this.handlePasswordChange.bind(this);
@@ -15,7 +16,7 @@ export default class LoginState extends React.Component {
   handleUsernameChange(event) {
        this.setState({username: event.target.value});
        if(event.target.value !=='' &&
-       event.target.value.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i) !=null){
+       event.target.value.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i) != null){
             this.setState({usernameValid:true});
        }
        else{
@@ -33,6 +34,7 @@ export default class LoginState extends React.Component {
     }
     handleSubmit(event) {
         if(this.state.usernameValid == true && this.state.passwordValid == true){
+          this.setState({buttonClicked:true});
           var requestBody = {
                               username: this.state.username,
                               password: this.state.password,
@@ -45,17 +47,25 @@ export default class LoginState extends React.Component {
                                       'Accept':'application/json'
                               },
                           body: JSON.stringify(requestBody)
-                          }).then(response=> {
-                                   return response.json();
-                          }).then(json=>{
-                               cookie.save('auth-token',json.token.authToken,true);
-                               cookie.save('user',
-                               json.user.firstName    +' '+
-                               json.user.lastName
-                               ,true);
-                          }).then(()=>{
-                            router.go('contacts');
-                          }).catch(function(ex) {
+                        }).then(response=>{response.json().then(json=> {
+                            if(json.code != 401){
+                                cookie.save('auth-token',json.token.authToken,true);
+                                 var displayName = '';
+                                 if(json.user.firstName  != 'undefined'){
+                                   displayName =json.user.firstName +' ';
+                                 }
+                                 if(json.user.lastName  != 'undefined'){
+                                   displayName +=    json.user.lastName;
+                                 }
+                                cookie.save('user', displayName ,true);
+                                router.go('contacts');
+                              }
+                           else{
+                              alert("Login Failed , username or password is wrong");
+                              this.setState({buttonClicked:false});
+                            }
+                          });
+                        }).catch(function(ex) {
                           console.log('failed ', ex)
                           });
                         event.preventDefault();
@@ -79,10 +89,12 @@ export default class LoginState extends React.Component {
                                             value={this.state.username} onChange={this.handleUsernameChange}/>
                                         </div>
                                         <div className='form-group'>
-                                            <input required className='form-control' placeholder='Password' name='password' type='password'
+                                            <input required className='form-control ' placeholder='Password' name='password' type='password'
                                          value={this.state.password} onChange={this.handlePasswordChange}  />
                                         </div>
-                                       <input type='submit' disabled={!this.state.usernameValid ||!this.state.passwordValid } className='btn btn-sm btn-success pull-right' value='submit'/>
+                                       <input type='submit' disabled={!this.state.usernameValid
+                                                                      ||!this.state.passwordValid
+                                                                      || this.state.buttonClicked} className='btn btn-sm btn-success pull-right' value='submit'/>
                                     </fieldset>
                                 </form>
                         </div>
