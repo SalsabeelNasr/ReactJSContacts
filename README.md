@@ -1,7 +1,9 @@
 # ReactJSContacts
-Prerequisites 
--npm install
--grunt
--start http://localhost:8081
--disable cors in browser
--login
+<p>Prerequisites</p> 
+<ul>
+<li>-npm install</li>
+<li>-grunt</li>
+<li>-start http://localhost:8081</li>
+<li>-disable cors in browser</li>
+<li>-login</li>
+</ul>
